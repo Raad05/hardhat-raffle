@@ -14,11 +14,30 @@ Steps:
 pragma solidity ^0.8.9;
 
 // custom errors
+error Raffle__InsufficientFund();
 
 contract Raffle {
     // variables
+    uint private immutable i_entranceFee;
+    address payable [] private s_players;
+
     // constructor
+    constructor(uint _entranceFee) {
+        i_entranceFee = _entranceFee;
+    }
+
     // setter functions
+    function enterRaffle() public payable {
+        if(msg.value < i_entranceFee) {
+            revert Raffle__InsufficientFund();
+        }
+
+        s_players.push(payable(msg.sender));
+    }
+
     // getter functions
+    function getPlayer(uint _idx) public view returns (address) {
+        return s_players[_idx];
+    }
     // modifiers
 }
