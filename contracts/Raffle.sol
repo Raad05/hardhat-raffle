@@ -13,16 +13,22 @@ Steps:
 // SPDX-License-Identifier: MIT 
 pragma solidity ^0.8.9;
 
+// imports
+import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+
 // custom errors
 error Raffle__InsufficientFund();
 
-contract Raffle {
-    // variables
+contract Raffle is VRFConsumerBaseV2 {
+    // state variables
     uint private immutable i_entranceFee;
     address payable [] private s_players;
 
+    // events
+    event RaffleEnter(address indexed player);
+
     // constructor
-    constructor(uint _entranceFee) {
+    constructor(uint _entranceFee, address vrfCoordinatorV2) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = _entranceFee;
     }
 
@@ -31,11 +37,17 @@ contract Raffle {
         if(msg.value < i_entranceFee) {
             revert Raffle__InsufficientFund();
         }
-
         s_players.push(payable(msg.sender));
+        emit RaffleEnter(msg.sender);
     }
 
+    function fulfillRandomWords(uint requestId,uint[] memory randomWords) internal override {}
+ 
     // getter functions
+    function getEntranceFee() public view returns (uint) {
+        return i_entranceFee;
+    }
+
     function getPlayer(uint _idx) public view returns (address) {
         return s_players[_idx];
     }
