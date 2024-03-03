@@ -1,13 +1,9 @@
-/*
+/**
 Features:
 1. Enter the lottery by paying some eth
 2. Pick a random winner (verifiably random)
 3. Winner to be selected every X minutes -> completely automated
 4. Chainlink Oracles -> Randomness, Automated execution (Chainlink Keeper)
-
-Steps:
-1. Write code
-2. Refactor code for gas optimization
 */
 
 // SPDX-License-Identifier: MIT
@@ -16,12 +12,13 @@ pragma solidity ^0.8.9;
 // imports
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
 // custom errors
 error Raffle__InsufficientFund();
 error Raffle__TransferFailed();
 
-contract Raffle is VRFConsumerBaseV2 {
+contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     // state variables
     uint private immutable i_entranceFee;
     address payable[] private s_players;
@@ -61,6 +58,20 @@ contract Raffle is VRFConsumerBaseV2 {
         s_players.push(payable(msg.sender));
         emit RaffleEnter(msg.sender);
     }
+
+    /**
+     * @dev
+     * The function that the chainlink keeper nodes call
+     * They look for the upkeepNeeded to return true. The following shoule be true for it:
+     * 1. The time interval should be passed
+     * 2. The lottery should have at least one player and some Eth
+     * 3. The subscription is funded with link
+     * 4. The lottery should be in an "open" state
+     */
+
+    function checkUpkeep(
+        bytes calldata
+    ) external view override returns (bool upkeepNeeded, bytes memory) {}
 
     function requestRandomWinner() external {
         uint requestId = i_vrfCoordinatorV2.requestRandomWords(
