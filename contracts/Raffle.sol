@@ -17,8 +17,15 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 // custom errors
 error Raffle__InsufficientFund();
 error Raffle__TransferFailed();
+error Raffle__NotOpen();
 
 contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
+    // type declarations
+    enum RaffleState {
+        OPEN,
+        CALCULATING
+    }
+
     // state variables
     uint private immutable i_entranceFee;
     address payable[] private s_players;
@@ -29,6 +36,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint32 private immutable i_callbackGasLimit;
     uint32 private constant NUM_WORDS = 1;
     address private s_recentWinner;
+    RaffleState private s_raffleState;
 
     // events
     event RaffleEnter(address indexed player);
@@ -48,12 +56,16 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         i_keyHash = _keyHash;
         i_subscriptionId = _subscriptionId;
         i_callbackGasLimit = _callbackGasLimit;
+        s_raffleState = RaffleState.OPEN;
     }
 
     // setter functions
     function enterRaffle() public payable {
         if (msg.value < i_entranceFee) {
             revert Raffle__InsufficientFund();
+        }
+        if (s_raffleState != RaffleState.OPEN) {
+            revert Raffle__NotOpen();
         }
         s_players.push(payable(msg.sender));
         emit RaffleEnter(msg.sender);
@@ -74,6 +86,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     ) external view override returns (bool upkeepNeeded, bytes memory) {}
 
     function requestRandomWinner() external {
+        s_raffleState = RaffleState.CALCULATING;
         uint requestId = i_vrfCoordinatorV2.requestRandomWords(
             i_keyHash,
             i_subscriptionId,
@@ -91,6 +104,8 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         uint winnerIdx = randomWords[0] % s_players.length;
         address payable winner = s_players[winnerIdx];
         s_recentWinner = winner;
+        s_raffleState = RaffleState.OPEN;
+        s_players = new address payable[](0);
         (bool sent, ) = winner.call{value: address(this).balance}("");
         if (!sent) {
             revert Raffle__TransferFailed();
@@ -110,5 +125,6 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     function getRecentWinner() public view returns (address) {
         return s_recentWinner;
     }
+
     // modifiers
 }
