@@ -37,6 +37,8 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint32 private constant NUM_WORDS = 1;
     address private s_recentWinner;
     RaffleState private s_raffleState;
+    uint private s_lastTimestamp;
+    uint private immutable i_interval;
 
     // events
     event RaffleEnter(address indexed player);
@@ -49,7 +51,8 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         address _vrfCoordinatorV2,
         bytes32 _keyHash,
         uint64 _subscriptionId,
-        uint32 _callbackGasLimit
+        uint32 _callbackGasLimit,
+        uint _interval
     ) VRFConsumerBaseV2(_vrfCoordinatorV2) {
         i_entranceFee = _entranceFee;
         i_vrfCoordinatorV2 = VRFCoordinatorV2Interface(_vrfCoordinatorV2);
@@ -57,6 +60,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         i_subscriptionId = _subscriptionId;
         i_callbackGasLimit = _callbackGasLimit;
         s_raffleState = RaffleState.OPEN;
+        i_interval = _interval;
     }
 
     // setter functions
@@ -83,7 +87,14 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     function checkUpkeep(
         bytes calldata
-    ) external view override returns (bool upkeepNeeded, bytes memory) {}
+    ) external view override returns (bool upkeepNeeded, bytes memory) {
+        bool timePassed = ((block.timestamp - s_lastTimestamp) > i_interval);
+        bool hasPlayers = (s_players.length > 0);
+        bool hasBalance = address(this).balance > 0;
+        bool isOpen = (s_raffleState == RaffleState.OPEN);
+
+        upkeepNeeded = timePassed && hasPlayers && hasBalance && isOpen;
+    }
 
     function requestRandomWinner() external {
         s_raffleState = RaffleState.CALCULATING;
