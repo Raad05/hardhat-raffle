@@ -24,6 +24,13 @@ error Raffle__UpkeepNotNeeded(
     uint raffleState
 );
 
+/**
+ * @title  A simple Raffle Contract
+ * @author Yamin Raad
+ * @notice This contract is for creating an untamperable decentralized smart contract
+ * @dev This implements Chainlink VRF v2 and Chainlink Keeper
+ */
+
 contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     // type declarations
     enum RaffleState {
@@ -91,7 +98,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
      */
 
     function checkUpkeep(
-        bytes calldata
+        bytes memory
     ) public view override returns (bool upkeepNeeded, bytes memory) {
         bool timePassed = ((block.timestamp - s_lastTimestamp) > i_interval);
         bool hasPlayers = (s_players.length > 0);
@@ -149,6 +156,26 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     function getRecentWinner() public view returns (address) {
         return s_recentWinner;
+    }
+
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
+    }
+
+    function getNumwords() public pure returns (uint) {
+        return NUM_WORDS;
+    }
+
+    function getNumberOfPlayers() public view returns (uint) {
+        return s_players.length;
+    }
+
+    function getLatestTimestamp() public view returns (uint) {
+        return s_lastTimestamp;
+    }
+
+    function getRequestConfirmations() public pure returns (uint) {
+        return REQUEST_CONFIRMATIONS;
     }
 
     // modifiers
