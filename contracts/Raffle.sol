@@ -42,7 +42,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint private immutable i_entranceFee;
     address payable[] private s_players;
     VRFCoordinatorV2Interface private immutable i_vrfCoordinatorV2;
-    bytes32 private immutable i_keyHash;
+    bytes32 private immutable i_keyHash; // gasLane
     uint64 private immutable i_subscriptionId;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint32 private immutable i_callbackGasLimit;
