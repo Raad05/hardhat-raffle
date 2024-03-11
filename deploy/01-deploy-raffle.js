@@ -3,6 +3,8 @@ const {
   developmentChains,
   networkConfig,
 } = require("../helper-hardhat-config");
+require("dotenv").config();
+const { verify } = require("../utils/verify");
 
 const VRF_SUBSCRIPTION_FUND_AMOUNT = ethers.parseEther("30");
 
@@ -15,13 +17,14 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const entranceFee = networkConfig[chainId]["entranceFee"];
 
   if (developmentChains.includes(network.name)) {
-    const vrfCoordinatorV2Mock = await ethers.getContractFactory(
+    const vrfCoordinatorV2Mock = await ethers.getContract(
       "VRFCoordinatorV2Mock"
     );
-    vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address;
+    vrfCoordinatorV2Address = vrfCoordinatorV2Mock.target;
+
     const txResponse = await vrfCoordinatorV2Mock.createSubscription();
-    const txReceipt = await txResponse.wait(1);
-    subscriptionId = txReceipt.events[0].args.subId;
+    const txReceipt = await txResponse.wait();
+    subscriptionId = txReceipt.logs[0].args.subId;
 
     // Fund the subscription
     // Usually, you'd need the link token on a real network
@@ -53,4 +56,18 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     waitConfirmations: network.config.blockConfirmations || 1,
   });
+
+  log("Raffle deployed.");
+
+  if (
+    !developmentChains.includes(network.name) &&
+    process.env.ETHERSCAN_API_KEY
+  ) {
+    log("Verifying contract...");
+    await verify(raffle.address, args);
+    log("Contract verified.");
+    log("----------------------------------------------------------");
+  }
 };
+
+module.exports.tags = ["all", "raffle"];

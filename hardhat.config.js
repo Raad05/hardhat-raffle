@@ -1,4 +1,8 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-ethers");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("hardhat-deploy");
+require("hardhat-deploy-ethers");
 require("dotenv").config();
 
 const {
