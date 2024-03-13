@@ -20,11 +20,13 @@ const { assert } = require("chai");
           deployer
         );
       });
-      it("initializes the raffle contract correctly", async function () {
-        // Ideally each 'it' has just 1 assert. But ok
-        const raffleState = await raffle.getRaffleState();
-        const interval = await raffle.getInterval();
-        assert.equal(raffleState.toString(), "0");
-        assert.equal(interval.toString(), networkConfig[chainId]["interval"]);
+      describe("Constructor:", async function () {
+        it("initializes the raffle contract correctly", async function () {
+          // Ideally each 'it' has just 1 assert. But ok
+          const raffleState = await raffle.getRaffleState();
+          const interval = await raffle.getInterval();
+          assert.equal(raffleState.toString(), "0");
+          assert.equal(interval.toString(), networkConfig[chainId]["interval"]);
+        });
       });
     });
