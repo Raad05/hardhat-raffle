@@ -72,6 +72,7 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         i_subscriptionId = _subscriptionId;
         i_callbackGasLimit = _callbackGasLimit;
         s_raffleState = RaffleState.OPEN;
+        s_lastTimestamp = block.timestamp;
         i_interval = _interval;
     }
 
