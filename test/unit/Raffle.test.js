@@ -23,7 +23,7 @@ const { assert, expect } = require("chai");
         interval = await raffle.getInterval();
       });
 
-      describe("constructor:", async function () {
+      describe("constructor:", function () {
         it("initializes the raffle contract correctly", async function () {
           // Ideally each 'it' has just 1 assert. But ok
           const raffleState = await raffle.getRaffleState();
@@ -32,7 +32,7 @@ const { assert, expect } = require("chai");
         });
       });
 
-      describe("enterRaffle:", async function () {
+      describe("enterRaffle:", function () {
         it("reverts when you don't pay enough", async function () {
           await expect(raffle.enterRaffle()).to.be.rejectedWith(
             "Raffle__InsufficientFund"
@@ -58,7 +58,10 @@ const { assert, expect } = require("chai");
             Number(interval) + 1,
           ]);
 
-          await network.provider.send("evm_mine", []);
+          await network.provider.request({
+            method: "evm_mine",
+            params: [],
+          });
           // Pretend to be a chainlink Keeper
           await raffle.performUpkeep("0x");
           await expect(
@@ -67,7 +70,7 @@ const { assert, expect } = require("chai");
         });
       });
 
-      describe("checkUpkeep:", async function () {
+      describe("checkUpkeep:", function () {
         it("returns false if people haven't sent any ETH", async function () {
           await network.provider.send("evm_increaseTime", [
             Number(interval) + 1,
@@ -88,6 +91,32 @@ const { assert, expect } = require("chai");
           const { upkeepNeeded } = await raffle.checkUpkeep("0x");
           assert.equal(raffleState.toString(), "1");
           assert.equal(upkeepNeeded, false);
+        });
+
+        it("returns false if enough time hasn't passed", async function () {
+          await raffle.enterRaffle({ value: entranceFee });
+          await network.provider.send("evm_increaseTime", [
+            Number(interval) - 5,
+          ]);
+          await network.provider.request({
+            method: "evm_mine",
+            params: [],
+          });
+          const { upkeepNeeded } = await raffle.checkUpkeep("0x");
+          assert(!upkeepNeeded);
+        });
+
+        it("returns true if enough time has passed, has players, eth, and is open", async () => {
+          await raffle.enterRaffle({ value: entranceFee });
+          await network.provider.send("evm_increaseTime", [
+            Number(interval) - 1,
+          ]);
+          await network.provider.request({
+            method: "evm_mine",
+            params: [],
+          });
+          const { upkeepNeeded } = await raffle.checkUpkeep("0x");
+          assert(upkeepNeeded);
         });
       });
     });
