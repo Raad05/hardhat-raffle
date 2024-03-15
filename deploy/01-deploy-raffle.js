@@ -12,14 +12,12 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
-  let vrfCoordinatorV2Address, subscriptionId;
+  let vrfCoordinatorV2Mock, vrfCoordinatorV2Address, subscriptionId;
 
   const entranceFee = networkConfig[chainId]["entranceFee"];
 
   if (developmentChains.includes(network.name)) {
-    const vrfCoordinatorV2Mock = await ethers.getContract(
-      "VRFCoordinatorV2Mock"
-    );
+    vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock");
     vrfCoordinatorV2Address = vrfCoordinatorV2Mock.target;
 
     const txResponse = await vrfCoordinatorV2Mock.createSubscription();
@@ -56,6 +54,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     waitConfirmations: network.config.blockConfirmations || 1,
   });
+
+  await vrfCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address);
 
   log("Raffle deployed.");
 
