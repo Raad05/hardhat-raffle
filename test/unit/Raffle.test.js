@@ -66,4 +66,15 @@ const { assert, expect } = require("chai");
           ).to.be.rejectedWith("Raffle__NotOpen");
         });
       });
+
+      describe("checkUpkeep:", async function () {
+        it("returns false if people haven't sent any ETH", async function () {
+          await network.provider.send("evm_increaseTime", [
+            Number(interval) + 1,
+          ]);
+          await network.provider.send("evm_mine", []);
+          const { upkeepNeeded } = await raffle.checkUpkeep("0x");
+          assert(!upkeepNeeded);
+        });
+      });
     });
