@@ -130,5 +130,11 @@ const { assert, expect } = require("chai");
           const tx = await raffle.checkUpkeep("0x");
           assert(tx);
         });
+
+        it("reverts when checkUpkeep is false", async function () {
+          await expect(raffle.performUpkeep("0x")).to.be.rejectedWith(
+            "Raffle__UpkeepNotNeeded"
+          );
+        });
       });
     });
