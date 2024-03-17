@@ -119,4 +119,16 @@ const { assert, expect } = require("chai");
           assert(upkeepNeeded);
         });
       });
+
+      describe("performUpkeep:", function () {
+        it("it can run if only checkUpkeep is true", async function () {
+          await raffle.enterRaffle({ value: entranceFee });
+          await network.provider.send("evm_increaseTime", [
+            Number(interval) + 1,
+          ]);
+          await network.provider.request({ method: "evm_mine", params: [] });
+          const tx = await raffle.checkUpkeep("0x");
+          assert(tx);
+        });
+      });
     });
