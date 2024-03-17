@@ -136,5 +136,19 @@ const { assert, expect } = require("chai");
             "Raffle__UpkeepNotNeeded"
           );
         });
+
+        it("updates the raffle state, calls the VRF coordinator and emits an event", async function () {
+          await raffle.enterRaffle({ value: entranceFee });
+          await network.provider.send("evm_increaseTime", [
+            Number(interval) + 1,
+          ]);
+          await network.provider.request({ method: "evm_mine", params: [] });
+          const txResponse = await raffle.performUpkeep("0x");
+          const txReceipt = await txResponse.wait();
+          const requestId = txReceipt.logs[1].args.requestId;
+          const raffleState = await raffle.getRaffleState();
+          assert(Number(requestId) > 0);
+          assert(Number(raffleState) === 1);
+        });
       });
     });
