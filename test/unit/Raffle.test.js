@@ -151,4 +151,23 @@ const { assert, expect } = require("chai");
           assert(Number(raffleState) === 1);
         });
       });
+
+      describe("fulfillRandomWords:", function () {
+        beforeEach(async function () {
+          await raffle.enterRaffle({ value: entranceFee });
+          await network.provider.send("evm_increaseTime", [
+            Number(interval) + 1,
+          ]);
+          await network.provider.request({ method: "evm_mine", params: [] });
+        });
+
+        it("can only be called after performUpkeep", async function () {
+          await expect(
+            vrfCoordinatorV2Mock.fulfillRandomWords(0, raffle.target)
+          ).to.be.revertedWith("nonexistent request");
+          await expect(
+            vrfCoordinatorV2Mock.fulfillRandomWords(1, raffle.target)
+          ).to.be.revertedWith("nonexistent request");
+        });
+      });
     });
