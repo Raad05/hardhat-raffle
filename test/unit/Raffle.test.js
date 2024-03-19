@@ -169,5 +169,20 @@ const { assert, expect } = require("chai");
             vrfCoordinatorV2Mock.fulfillRandomWords(1, raffle.target)
           ).to.be.revertedWith("nonexistent request");
         });
+
+        it("picks a winner, resets the lottery, and sends money", async function () {
+          const additionalEntrants = 3;
+          const startingIdx = 1; // since deployerIdx = 0
+          for (let i = startingIdx; i < additionalEntrants + startingIdx; i++) {
+            const accountConnectedRaffle = raffle.connect(accounts[1]);
+            await accountConnectedRaffle.enterRaffle({ value: entranceFee });
+          }
+
+          const startingTime = await raffle.getLatestTimestamp();
+
+          // performUpkeep (mock being chainlink Keepers)
+          // fulfillRandomWords (mock begin chainlink VRF)
+          // we will have to wait for the fulfillRandomWords to be called
+        });
       });
     });
