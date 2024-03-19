@@ -183,6 +183,15 @@ const { assert, expect } = require("chai");
           // performUpkeep (mock being chainlink Keepers)
           // fulfillRandomWords (mock begin chainlink VRF)
           // we will have to wait for the fulfillRandomWords to be called
+          await new Promise(async (resolve, reject) => {
+            raffle.once("WinnerPicked", () => {
+              try {
+              } catch (err) {}
+              resolve();
+            });
+            // setting up the listener
+            // below we will fire the event, and the listener will pick it up, and resolve
+          });
         });
       });
     });
