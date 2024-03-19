@@ -191,6 +191,12 @@ const { assert, expect } = require("chai");
             });
             // setting up the listener
             // below we will fire the event, and the listener will pick it up, and resolve
+            const txResponse = await raffle.performUpkeep("0x");
+            const txReceipt = await txResponse.wait();
+            await vrfCoordinatorV2Mock.fulfillRandomWords(
+              txReceipt.logs[1].args.requestId,
+              raffle.target
+            );
           });
         });
       });
