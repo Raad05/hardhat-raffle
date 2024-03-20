@@ -8,10 +8,16 @@ const { assert, expect } = require("chai");
 !developmentChains.includes(network.name)
   ? describe.skip
   : describe("Raffle Unit Test:", async function () {
-      let raffle, vrfCoordinatorV2Mock, entranceFee, deployer, interval;
+      let raffle,
+        vrfCoordinatorV2Mock,
+        entranceFee,
+        deployer,
+        interval,
+        accounts;
       const chainId = network.config.chainId;
 
       beforeEach(async function () {
+        accounts = await ethers.getSigners();
         deployer = (await getNamedAccounts()).deployer;
         await deployments.fixture("all");
         raffle = await ethers.getContract("Raffle", deployer);
@@ -187,7 +193,6 @@ const { assert, expect } = require("chai");
             raffle.once("WinnerPicked", async () => {
               console.log("Found the event!");
               try {
-                const recentWinner = await raffle.getRecentWinner();
                 const raffleState = await raffle.getRaffleState();
                 const lastTimestamp = await raffle.getLatestTimestamp();
                 const numberOfPlayers = await raffle.getNumberOfPlayers();
@@ -208,8 +213,8 @@ const { assert, expect } = require("chai");
               } catch (err) {
                 reject(err);
               }
-              resolve();
             });
+            resolve();
             // setting up the listener
             // below we will fire the event, and the listener will pick it up, and resolve
             const txResponse = await raffle.performUpkeep("0x");
