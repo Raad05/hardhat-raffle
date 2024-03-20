@@ -178,15 +178,26 @@ const { assert, expect } = require("chai");
             await accountConnectedRaffle.enterRaffle({ value: entranceFee });
           }
 
-          const startingTime = await raffle.getLatestTimestamp();
+          const startingTimestamp = await raffle.getLatestTimestamp();
 
           // performUpkeep (mock being chainlink Keepers)
           // fulfillRandomWords (mock begin chainlink VRF)
           // we will have to wait for the fulfillRandomWords to be called
           await new Promise(async (resolve, reject) => {
-            raffle.once("WinnerPicked", () => {
+            raffle.once("WinnerPicked", async () => {
+              console.log("Found the event!");
               try {
-              } catch (err) {}
+                const recentWinner = await raffle.getRecentWinner();
+                const raffleState = await raffle.getRaffleState();
+                const lastTimestamp = await raffle.getLatestTimestamp();
+                const numberOfPlayers = await raffle.getNumberOfPlayers();
+
+                assert.equal(raffleState.toString(), "0");
+                assert.equal(numberOfPlayers.toString(), "0");
+                assert(lastTimestamp > startingTimestamp);
+              } catch (err) {
+                reject(err);
+              }
               resolve();
             });
             // setting up the listener
