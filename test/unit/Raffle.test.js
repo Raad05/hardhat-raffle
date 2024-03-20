@@ -191,9 +191,19 @@ const { assert, expect } = require("chai");
                 const raffleState = await raffle.getRaffleState();
                 const lastTimestamp = await raffle.getLatestTimestamp();
                 const numberOfPlayers = await raffle.getNumberOfPlayers();
+                const winnerEndingBalance = await accounts[1].getBalance();
 
                 assert.equal(raffleState.toString(), "0");
                 assert.equal(numberOfPlayers.toString(), "0");
+                assert.equal(
+                  winnerEndingBalance.toSting(),
+                  winnerStartingBalance.add(
+                    entranceFee
+                      .mul(additionalEntrants)
+                      .add(entranceFee)
+                      .toString()
+                  )
+                );
                 assert(lastTimestamp > startingTimestamp);
               } catch (err) {
                 reject(err);
@@ -204,7 +214,8 @@ const { assert, expect } = require("chai");
             // below we will fire the event, and the listener will pick it up, and resolve
             const txResponse = await raffle.performUpkeep("0x");
             const txReceipt = await txResponse.wait();
-            await vrfCoordinatorV2Mock.fulfillRandomWords(
+            const winnerStartingBalance = await accounts[1].getBalance();
+            await await vrfCoordinatorV2Mock.fulfillRandomWords(
               txReceipt.logs[1].args.requestId,
               raffle.target
             );
