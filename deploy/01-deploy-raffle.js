@@ -55,7 +55,9 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     waitConfirmations: network.config.blockConfirmations || 1,
   });
 
-  await vrfCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address);
+  if (developmentChains.includes(network.name)) {
+    await vrfCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address);
+  }
 
   log("Raffle deployed.");
 

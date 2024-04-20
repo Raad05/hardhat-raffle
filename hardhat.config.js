@@ -25,6 +25,9 @@ module.exports = {
       accounts: [PRIVATE_KEY],
     },
   },
+  etherscan: {
+    apiKey: ETHERSCAN_API_KEY,
+  },
   namedAccounts: {
     deployer: {
       default: 0,
